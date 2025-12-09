@@ -1,0 +1,20 @@
+{
+    "name": "ocean-gate",
+    "version": "1.0.0",
+    "description": "Ocean Gate International - Lobster Export Management System",
+    "scripts": {
+        "dev": "concurrently \"npm --prefix backend start\" \"npm --prefix frontend dev\"",
+        "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+        "clear-db": "node backend/clearDatabase.js"
+    },
+    "keywords": [
+        "lobster",
+        "export",
+        "management"
+    ],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    }
+}

@@ -1,0 +1,50 @@
+name: Deploy Ocean Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: npm ci
+        
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+        
+      - name: Lint Backend
+        working-directory: ./backend
+        run: npm run lint || echo "No lint script found"
+        
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: npm run build
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Deploy to Production
+        run: |
+          echo "Deployment step - configure based on your hosting platform"
+          # For VPS: Add SSH deployment commands
+          # For Vercel: Use vercel --prod
+          # For Railway: Push to railway
