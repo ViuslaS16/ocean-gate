@@ -1,4 +1,4 @@
-name: Deploy Ocean Gate
+name: Deploy to Google Cloud Platform
 
 on:
   push:
@@ -26,10 +26,6 @@ jobs:
         working-directory: ./frontend
         run: npm ci
         
-      - name: Lint Backend
-        working-directory: ./backend
-        run: npm run lint || echo "No lint script found"
-        
       - name: Build Frontend
         working-directory: ./frontend
         run: npm run build
@@ -42,9 +38,32 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
-      - name: Deploy to Production
-        run: |
-          echo "Deployment step - configure based on your hosting platform"
-          # For VPS: Add SSH deployment commands
-          # For Vercel: Use vercel --prod
-          # For Railway: Push to railway
+      - name: Deploy to GCP VM
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.GCP_VM_IP }}
+          username: ${{ secrets.GCP_SSH_USER }}
+          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/ocean-gate
+            
+            # Pull latest changes
+            git pull origin main
+            
+            # Update Backend
+            echo "🔄 Updating Backend..."
+            cd backend
+            npm install --production
+            pm2 restart ocean-gate-backend
+            
+            # Update Frontend
+            echo "🔄 Updating Frontend..."
+            cd ../frontend
+            npm install
+            npm run build
+            pm2 restart ocean-gate-frontend
+            
+            # Check status
+            pm2 status
+            
+            echo "✅ Deployment completed successfully!"
