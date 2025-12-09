@@ -45,7 +45,6 @@ jobs:
           username: sithum_20231492
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           port: 22
-          script_stop: false
           command_timeout: 10m
           script: |
             cd /var/www/ocean-gate
@@ -63,6 +62,7 @@ jobs:
             echo "🔄 Updating Frontend..."
             cd ../frontend
             npm install
+            rm -rf .next
             npm run build
             pm2 restart ocean-gate-frontend
             
@@ -70,3 +70,4 @@ jobs:
             pm2 status
             
             echo "✅ Deployment completed successfully!"
+
