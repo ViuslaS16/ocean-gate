@@ -42,8 +42,11 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.GCP_VM_IP }}
-          username: ${{ secrets.GCP_SSH_USER }}
+          username: sithum_20231492
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          port: 22
+          script_stop: false
+          command_timeout: 10m
           script: |
             cd /var/www/ocean-gate
             
