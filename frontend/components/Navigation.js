@@ -2,12 +2,19 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Package, FileText, AlertTriangle, Settings, LayoutDashboard } from 'lucide-react';
+import { Package, FileText, AlertTriangle, Settings, LayoutDashboard, LogOut, User } from 'lucide-react';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function Navigation() {
     const pathname = usePathname();
+    const { user, logout } = useAuth();
 
     const isActive = (path) => pathname === path;
+
+    // Hide navigation on login page
+    if (pathname === '/login') {
+        return null;
+    }
 
     const navLinks = [
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
@@ -53,6 +60,24 @@ export default function Navigation() {
                         })}
                     </div>
 
+                    {/* User Info & Logout */}
+                    {user && (
+                        <div className="hidden md:flex items-center space-x-3">
+                            <div className="flex items-center space-x-2 px-3 py-2 bg-cyan-50 rounded-lg">
+                                <User size={18} className="text-cyan-600" />
+                                <span className="text-sm font-medium text-gray-700">{user.username}</span>
+                            </div>
+                            <button
+                                onClick={logout}
+                                className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200"
+                            >
+                                <LogOut size={18} />
+                                <span className="font-medium">Logout</span>
+                            </button>
+                        </div>
+                    )}
+
+
                     {/* Mobile Menu Button */}
                     <div className="md:hidden">
                         <button className="text-gray-700 hover:text-cyan-600 p-2">
@@ -86,6 +111,15 @@ export default function Navigation() {
                             </Link>
                         );
                     })}
+                    {user && (
+                        <button
+                            onClick={logout}
+                            className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200 w-full"
+                        >
+                            <LogOut size={18} />
+                            <span className="font-medium">Logout</span>
+                        </button>
+                    )}
                 </div>
             </div>
         </nav>

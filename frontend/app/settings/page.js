@@ -6,6 +6,7 @@ import CategoryList from '@/components/Settings/CategoryList';
 import LoadingSpinner from '@/components/UI/LoadingSpinner';
 import Toast from '@/components/UI/Toast';
 import ConfirmDialog from '@/components/UI/ConfirmDialog';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import { getCategories, createCategory, deleteCategory } from '@/lib/api';
 
 export default function SettingsPage() {
@@ -52,39 +53,41 @@ export default function SettingsPage() {
     };
 
     return (
-        <div className="space-y-6">
-            <h1 className="text-3xl font-bold text-gray-900">Settings - Category Management</h1>
+        <ProtectedRoute>
+            <div className="space-y-6">
+                <h1 className="text-3xl font-bold text-gray-900">Settings - Category Management</h1>
 
-            <PresetCategories onSelect={handleAddCategory} />
+                <PresetCategories onSelect={handleAddCategory} />
 
-            {loading ? (
-                <div className="flex justify-center items-center min-h-[200px]">
-                    <LoadingSpinner size="lg" />
-                </div>
-            ) : (
-                <CategoryList
-                    categories={categories}
-                    onDelete={(category) => setDeleteDialog({ isOpen: true, category })}
+                {loading ? (
+                    <div className="flex justify-center items-center min-h-[200px]">
+                        <LoadingSpinner size="lg" />
+                    </div>
+                ) : (
+                    <CategoryList
+                        categories={categories}
+                        onDelete={(category) => setDeleteDialog({ isOpen: true, category })}
+                    />
+                )}
+
+                {toast && (
+                    <Toast
+                        message={toast.message}
+                        type={toast.type}
+                        onClose={() => setToast(null)}
+                    />
+                )}
+
+                <ConfirmDialog
+                    isOpen={deleteDialog.isOpen}
+                    onClose={() => setDeleteDialog({ isOpen: false, category: null })}
+                    onConfirm={handleDeleteCategory}
+                    title="Delete Category"
+                    message={`Are you sure you want to delete "${deleteDialog.category?.name}"? This will only work if no stock items use this category.`}
+                    confirmText="Delete"
+                    type="danger"
                 />
-            )}
-
-            {toast && (
-                <Toast
-                    message={toast.message}
-                    type={toast.type}
-                    onClose={() => setToast(null)}
-                />
-            )}
-
-            <ConfirmDialog
-                isOpen={deleteDialog.isOpen}
-                onClose={() => setDeleteDialog({ isOpen: false, category: null })}
-                onConfirm={handleDeleteCategory}
-                title="Delete Category"
-                message={`Are you sure you want to delete "${deleteDialog.category?.name}"? This will only work if no stock items use this category.`}
-                confirmText="Delete"
-                type="danger"
-            />
-        </div>
+            </div>
+        </ProtectedRoute>
     );
 }

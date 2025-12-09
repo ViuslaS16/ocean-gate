@@ -3,11 +3,21 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 // Helper function for API calls
 const apiCall = async (endpoint, options = {}) => {
     try {
+        // Get token from localStorage
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+        const headers = {
+            'Content-Type': 'application/json',
+            ...options.headers,
+        };
+
+        // Add Authorization header if token exists
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
         const response = await fetch(`${API_URL}${endpoint}`, {
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers,
-            },
+            headers,
             ...options,
         });
 
@@ -52,5 +62,11 @@ export const getDOARecords = () => apiCall('/doa');
 export const recordDOA = (data) => apiCall('/doa', { method: 'POST', body: JSON.stringify(data) });
 export const deleteDOA = (id) => apiCall(`/doa/${id}`, { method: 'DELETE' });
 
+
 // Dashboard
 export const getDashboardMetrics = () => apiCall('/dashboard/metrics');
+
+// Authentication
+export const login = (credentials) => apiCall('/auth/login', { method: 'POST', body: JSON.stringify(credentials) });
+export const register = (userData) => apiCall('/auth/register', { method: 'POST', body: JSON.stringify(userData) });
+export const verifyToken = () => apiCall('/auth/verify');

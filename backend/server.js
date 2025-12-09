@@ -5,6 +5,7 @@ const connectDB = require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
 
 // Import routes
+const authRoutes = require('./routes/auth');
 const categoryRoutes = require('./routes/categories');
 const stockRoutes = require('./routes/stock');
 const invoiceRoutes = require('./routes/invoices');
@@ -26,6 +27,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/stock', stockRoutes);
 app.use('/api/invoices', invoiceRoutes);
