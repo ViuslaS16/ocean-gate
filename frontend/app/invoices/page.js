@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, FileText, Download } from 'lucide-react';
-import { getInvoices } from '@/lib/api';
+import { Plus, FileText, Download, Trash2 } from 'lucide-react';
+import { getInvoices, deleteInvoice } from '@/lib/api';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import LoadingSpinner from '@/components/UI/LoadingSpinner';
 import Toast from '@/components/UI/Toast';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import PasswordConfirmDialog from '@/components/UI/PasswordConfirmDialog';
 import { generateInvoicePDF } from '@/lib/pdfGenerator';
 
 export default function InvoicesPage() {
@@ -15,6 +16,7 @@ export default function InvoicesPage() {
     const [invoices, setInvoices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [toast, setToast] = useState(null);
+    const [deleteDialog, setDeleteDialog] = useState({ isOpen: false, invoice: null });
 
     useEffect(() => {
         fetchInvoices();
@@ -34,9 +36,9 @@ export default function InvoicesPage() {
     };
 
     const getStatusColor = (status) => {
-        return status === 'Finalized'
-            ? 'bg-green-100 text-green-800'
-            : 'bg-yellow-100 text-yellow-800';
+        if (status === 'Finalized') return 'bg-green-100 text-green-800';
+        if (status === 'Deleted') return 'bg-gray-100 text-gray-600';
+        return 'bg-yellow-100 text-yellow-800';
     };
 
     const handleDownloadPDF = (invoice) => {
@@ -46,6 +48,21 @@ export default function InvoicesPage() {
         } catch (error) {
             console.error('Error generating PDF:', error);
             setToast({ type: 'error', message: 'Failed to generate PDF' });
+        }
+    };
+
+    const handleDeleteClick = (invoice) => {
+        setDeleteDialog({ isOpen: true, invoice });
+    };
+
+    const handleConfirmDelete = async (password) => {
+        try {
+            await deleteInvoice(deleteDialog.invoice._id, password);
+            setToast({ type: 'success', message: 'Invoice marked as deleted and stock restored' });
+            fetchInvoices(); // Refresh the list
+            setDeleteDialog({ isOpen: false, invoice: null });
+        } catch (error) {
+            throw new Error(error.message || 'Failed to delete invoice');
         }
     };
 
@@ -103,16 +120,28 @@ export default function InvoicesPage() {
                                                 </td>
                                                 <td className="py-3 px-4 text-sm">{formatDateTime(invoice.createdAt)}</td>
                                                 <td className="py-3 px-4 text-sm">
-                                                    {invoice.status === 'Finalized' && (
-                                                        <button
-                                                            onClick={() => handleDownloadPDF(invoice)}
-                                                            className="text-ocean-600 hover:text-ocean-800 flex items-center space-x-1"
-                                                            title="Download PDF"
-                                                        >
-                                                            <Download size={18} />
-                                                            <span className="text-xs">PDF</span>
-                                                        </button>
-                                                    )}
+                                                    <div className="flex items-center space-x-3">
+                                                        {invoice.status === 'Finalized' && (
+                                                            <button
+                                                                onClick={() => handleDownloadPDF(invoice)}
+                                                                className="text-ocean-600 hover:text-ocean-800 flex items-center space-x-1"
+                                                                title="Download PDF"
+                                                            >
+                                                                <Download size={18} />
+                                                                <span className="text-xs">PDF</span>
+                                                            </button>
+                                                        )}
+                                                        {invoice.status !== 'Deleted' && (
+                                                            <button
+                                                                onClick={() => handleDeleteClick(invoice)}
+                                                                className="text-red-600 hover:text-red-800 flex items-center space-x-1"
+                                                                title="Delete Invoice"
+                                                            >
+                                                                <Trash2 size={18} />
+                                                                <span className="text-xs">Delete</span>
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))
@@ -143,6 +172,14 @@ export default function InvoicesPage() {
                         onClose={() => setToast(null)}
                     />
                 )}
+
+                <PasswordConfirmDialog
+                    isOpen={deleteDialog.isOpen}
+                    onClose={() => setDeleteDialog({ isOpen: false, invoice: null })}
+                    onConfirm={handleConfirmDelete}
+                    title="Delete Invoice"
+                    message={`Are you sure you want to delete invoice ${deleteDialog.invoice?.invoiceNumber}? ${deleteDialog.invoice?.status === 'Finalized' ? 'Stock items will be restored.' : ''} This action cannot be undone.`}
+                />
             </div>
         </ProtectedRoute>
     );

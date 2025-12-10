@@ -193,10 +193,41 @@ exports.finalizeInvoice = async (req, res, next) => {
     }
 };
 
-// @desc    Delete invoice
+// @desc    Delete invoice (requires password verification)
 // @route   DELETE /api/invoices/:id
 exports.deleteInvoice = async (req, res, next) => {
     try {
+        const { password } = req.body;
+
+        // Verify password is provided
+        if (!password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password is required to delete an invoice'
+            });
+        }
+
+        // Get the current user and verify password
+        const User = require('../models/User');
+        const user = await User.findById(req.user.id).select('+password');
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Verify password
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid password'
+            });
+        }
+
+        // Find the invoice
         const invoice = await Invoice.findById(req.params.id);
 
         if (!invoice) {
@@ -206,18 +237,33 @@ exports.deleteInvoice = async (req, res, next) => {
             });
         }
 
+        // If invoice is finalized, restore stock items
         if (invoice.status === 'Finalized') {
-            return res.status(400).json({
-                success: false,
-                message: 'Cannot delete finalized invoice'
-            });
+            // Restore stock quantities
+            for (const item of invoice.lineItems) {
+                const stock = await Stock.findById(item.stockId);
+
+                if (stock) {
+                    // Add back the quantity
+                    stock.quantity += item.quantity;
+
+                    // Update status back to Available if it was Sold
+                    if (stock.status === 'Sold') {
+                        stock.status = 'Available';
+                    }
+
+                    await stock.save();
+                }
+            }
         }
 
-        await invoice.deleteOne();
+        // Mark invoice as deleted instead of removing it
+        invoice.status = 'Deleted';
+        await invoice.save();
 
         res.json({
             success: true,
-            message: 'Invoice deleted successfully'
+            message: 'Invoice marked as deleted and stock restored'
         });
     } catch (error) {
         next(error);

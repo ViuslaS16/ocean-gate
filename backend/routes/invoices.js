@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const auth = require('../middleware/auth');
 const {
     getInvoices,
     getInvoiceById,
@@ -14,7 +15,7 @@ router.route('/')
 
 router.route('/:id')
     .get(getInvoiceById)
-    .delete(deleteInvoice);
+    .delete(auth, deleteInvoice);
 
 router.put('/:id/finalize', finalizeInvoice);
 

@@ -82,7 +82,7 @@ const invoiceSchema = new mongoose.Schema({
     lineItems: [lineItemSchema],
     status: {
         type: String,
-        enum: ['Draft', 'Finalized'],
+        enum: ['Draft', 'Finalized', 'Deleted'],
         default: 'Draft'
     },
     subtotal: {

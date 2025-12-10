@@ -55,7 +55,10 @@ export const getInvoices = () => apiCall('/invoices');
 export const getInvoiceById = (id) => apiCall(`/invoices/${id}`);
 export const createInvoice = (data) => apiCall('/invoices', { method: 'POST', body: JSON.stringify(data) });
 export const finalizeInvoice = (id) => apiCall(`/invoices/${id}/finalize`, { method: 'PUT' });
-export const deleteInvoice = (id) => apiCall(`/invoices/${id}`, { method: 'DELETE' });
+export const deleteInvoice = (id, password) => apiCall(`/invoices/${id}`, {
+    method: 'DELETE',
+    body: JSON.stringify({ password })
+});
 
 // DOA
 export const getDOARecords = () => apiCall('/doa');
