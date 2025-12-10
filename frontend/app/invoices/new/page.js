@@ -116,12 +116,6 @@ export default function NewInvoicePage() {
     const handleFinalize = async () => {
         if (!validateInvoice()) return;
 
-        // Additional validation for finalize - phone and email are required for export
-        if (!invoiceData.customer.phone || !invoiceData.customer.email) {
-            setToast({ type: 'error', message: 'Phone and email are required to export invoice' });
-            return;
-        }
-
         try {
             setLoading(true);
             const totals = calculateTotals();

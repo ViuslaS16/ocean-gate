@@ -55,15 +55,21 @@ export const generateInvoicePDF = (invoiceData, invoiceNumber) => {
     doc.setFont('helvetica', 'normal');
 
     // Customer Info
-    doc.text(invoiceData.customer.name, 20, 87);
+    doc.text(`Name: ${invoiceData.customer.name}`, 20, 87);
+
+    // Handle multi-line address
     const addressLines = doc.splitTextToSize(invoiceData.customer.address, 80);
     let yPos = 92;
-    addressLines.forEach(line => {
-        doc.text(line, 20, yPos);
-        yPos += 4;
+    addressLines.forEach((line, index) => {
+        if (index === 0) {
+            doc.text(`Address: ${line}`, 20, yPos);
+        } else {
+            doc.text(`         ${line}`, 20, yPos + (index * 4));
+        }
     });
-    doc.text(`Phone: ${invoiceData.customer.phone}`, 20, yPos);
-    doc.text(`Email: ${invoiceData.customer.email}`, 20, yPos + 5);
+    yPos = 92 + (addressLines.length * 4);
+    doc.text(`Phone: ${invoiceData.customer.phone || 'N/A'}`, 20, yPos);
+    doc.text(`Email: ${invoiceData.customer.email || 'N/A'}`, 20, yPos + 5);
 
     // Shipping Info
     doc.text(`AWB: ${invoiceData.shipping.awbNumber}`, 120, 87);
