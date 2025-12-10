@@ -8,6 +8,9 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata = {
     title: 'Ocean Gate International - Stock Management',
     description: 'Live seafood inventory and POS system',
+    icons: {
+        icon: '/favicon.png',
+    },
 };
 
 export default function RootLayout({ children }) {
